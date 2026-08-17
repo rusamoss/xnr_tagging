@@ -1,0 +1,7 @@
+#REDIRECT [[Category:Foo]]
+
+{{R from move}}
+
+{{Redirect category shell|
+{{R to category namespace}}
+}}

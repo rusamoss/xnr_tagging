@@ -1,0 +1,6 @@
+#REDIRECT [[Category:Foo]]
+
+{{Rcat shell|
+{{R from move}}
+{{R to category namespace}}
+}}

@@ -1,0 +1,4 @@
+#REDIRECT [[Bar]]
+
+{{DEFAULTSORT:Foo}}
+[[Category:People]]

@@ -1,0 +1,3 @@
+#REDIRECT [[Category:Foo]]
+
+[[Category:Maintenance]]

@@ -1,0 +1,15 @@
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.claude/
+CLAUDE.md
+
+replica.my.cnf
+
+# pywikibot local state -- never commit credentials or caches
+user-config.py
+user-password.py
+apicache/
+apicache-py3/
+throttle.ctrl
