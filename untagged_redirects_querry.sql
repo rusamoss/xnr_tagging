@@ -1,15 +1,9 @@
 -- Cross-namespace redirects (excluding Draft: -> Any namespace, User:, and User talk: -> Any namespace, and any talk namespace -> any other talk namespace) NOT tagged with any XNR redirect category (e.g. Redirects to category space, Redirects to the main namespace), which have corresponding XNRs (so not e.g. redirects to the Module namespace, since {{R to module namespace}} doesn't exist).
+-- Also excludes R2 eligible redirects (from mainspace to any namespace except Category:, Template:, Wikipedia:, Help:, and Portal:)
 
--- Also excludes redirects from mainspace to any namespace except Category:, Template:, Wikipedia:, Help:, and Portal: -- those are WP:CSD#R2 speedy-deletion candidates, not tagging candidates (see Wikipedia:Speedy_deletion#R2 and its companion essay Wikipedia:Cross-namespace_redirects, which is explicit that mainspace -> Draft:/User: redirects "are normally speedy deleted" even when they result from a page move).
-
--- See https://quarry.wmcloud.org/query/107791 for XNRs that don't have corresponding rcat templates.
+-- See https://quarry.wmcloud.org/query/107791 for XNRs that don't have corresponding rcat templates (e.g. to Module:).
 
 -- Published at https://quarry.wmcloud.org/query/107774
-
--- source_title/target_title are raw page_title/rd_title columns -- MediaWiki DB titles, no namespace
--- prefix. Namespace names are resolved live by xnrbot/bot.py (pywikibot's site.namespace()), not looked
--- up here -- see CLAUDE.md's "Namespace ID reference" section. Pasting into Quarry to eyeball results?
--- Cross-reference source_ns/target_ns against that same table.
 
 SELECT
     src.page_title AS source_title,
@@ -43,7 +37,7 @@ WHERE src.page_namespace != r.rd_namespace
   AND src.page_namespace NOT IN (2, 3, 118) -- not from User, User talk, Draft
   AND NOT (src.page_namespace % 2 = 1 AND r.rd_namespace % 2 = 1) -- avoid talk -> talk
   AND NOT (src.page_namespace = 126 AND r.rd_namespace = 4) -- avoid MOS -> Wikipedia
-  AND NOT (src.page_namespace = 0 AND r.rd_namespace NOT IN (4, 10, 12, 14, 100)) -- avoid WP:CSD#R2-eligible mainspace XNRs (mainspace -> anything except Wikipedia, Template, Help, Category, Portal)
+  AND NOT (src.page_namespace = 0 AND r.rd_namespace NOT IN (4, 10, 12, 14, 100)) -- avoid R2-eligible mainspace XNRs (mainspace -> anything except Wikipedia, Template, Help, Category, Portal)
   AND (
         r.rd_namespace % 2 = 1                          -- to any talk namespace
      OR r.rd_namespace IN (0, 2, 4, 10, 12, 14, 100, 118, 126)  -- to Main, User, Wikipedia, Template, Help, Category, Portal, Draft, MOS (with rcats)
