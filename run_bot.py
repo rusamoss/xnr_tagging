@@ -39,6 +39,7 @@ import collections
 import datetime
 import difflib
 import logging
+import random
 import sys
 from pathlib import Path
 
@@ -130,6 +131,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         f"this run. Keep this low for BRFA trials. Default: {DEFAULT_EDIT_LIMIT}.",
     )
     parser.add_argument(
+        "--random",
+        action="store_true",
+        help="Shuffle candidates before applying --limit, instead of taking them in "
+        "query order. Useful for a BRFA trial so it isn't all one redirect type.",
+    )
+    parser.add_argument(
         "--candidates-file",
         default=None,
         metavar="PATH",
@@ -200,6 +207,9 @@ def main(argv: list[str] | None = None) -> int:
         finally:
             connection.close()
         logger.info("Fetched %d candidate redirect(s) from the replica database.", len(candidates))
+
+    if args.random:
+        random.shuffle(candidates)
 
     min_age = datetime.timedelta(hours=MIN_AGE_HOURS)
     edits_made = 0
