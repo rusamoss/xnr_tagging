@@ -229,7 +229,7 @@ def _evaluate_prepared_candidate(
         template_name=template_name,
         old_text=old_text,
         new_text=new_text,
-        summary=f"Tagging [[WP:XNR|cross-namespace redirect]] with {{{{{template_name}}}}}",
+        summary=f"Tagging [[WP:XNR|cross-namespace redirect]] with {{{{{template_name}}}}} ([[Wikipedia:Bots/Requests for approval/Rusabot|BRFA]])",
     )
 
 

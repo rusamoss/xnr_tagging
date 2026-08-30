@@ -81,8 +81,7 @@ DB_NAME_DIRECT = f"{DB_NAME}_p"
 # flag.
 MIN_AGE_HOURS = 24.0
 
-# Cap on actual edits made per run. Keep this low (e.g. 10-50) for BRFA
-# trials; raise only after trial approval.
+# Cap on actual edits made per run.
 DEFAULT_EDIT_LIMIT = 50
 
 # Consecutive unexpected errors before the run aborts outright, rather than
@@ -128,13 +127,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         type=int,
         default=DEFAULT_EDIT_LIMIT,
         help=f"Maximum number of edits (or would-be edits in --dry-run) to make "
-        f"this run. Keep this low for BRFA trials. Default: {DEFAULT_EDIT_LIMIT}.",
+        f"this run. Default: {DEFAULT_EDIT_LIMIT}.",
     )
     parser.add_argument(
         "--random",
         action="store_true",
         help="Shuffle candidates before applying --limit, instead of taking them in "
-        "query order. Useful for a BRFA trial so it isn't all one redirect type.",
+        "query order.",
     )
     parser.add_argument(
         "--candidates-file",
