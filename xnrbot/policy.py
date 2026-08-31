@@ -6,6 +6,8 @@ applies that knowledge to actual wikitext per WP:REDCAT.
 """
 from __future__ import annotations
 
+import re
+
 import mwparserfromhell
 from mwparserfromhell.nodes import Template, Wikilink
 
@@ -202,11 +204,27 @@ def _has_template(wikicode, template_name: str) -> bool:
     return any(_normalize(t.name) == target for t in wikicode.filter_templates(recursive=True))
 
 
+def _is_bare_rcat(template) -> bool:
+    """Whether `template` looks like a redirect-category ("Rcat") template by
+    name, per Wikipedia's near-universal "R from X" / "R to X" / "R with X"
+    naming convention (confirmed against Wikipedia:Template_index/Redirect_pages
+    -- the shell itself and its aliases are excluded separately via
+    SHELL_ALIASES and never reach this check, since it's only called once no
+    shell has been found on the page). Name-based, not a category-membership
+    check -- a non-rcat template that happened to be named "R something"
+    would be misdetected, but no real example of that has turned up.
+    """
+    return _normalize(template.name).startswith("r ")
+
+
 def add_rcat(text: str, template_name: str) -> str:
     """Return page content with {{template_name}} added as an XNR rcat tag.
 
     If the page has a redirect category shell, the template is appended inside it.
-    Otherwise a new shell is inserted.
+    Otherwise a new shell is inserted -- sweeping in any bare (unshelled) rcats
+    already on the page (see _is_bare_rcat) rather than leaving them stranded
+    next to a shell that only has the one new template, since WP:REDCAT expects
+    a page's rcats consolidated under a single shell.
 
     Unchanged if template_name is already present anywhere (defensive
     no-op; callers should already have checked via live category
@@ -229,14 +247,24 @@ def add_rcat(text: str, template_name: str) -> str:
             shell.add("1", f"\n{new_rcat}\n")
         return str(wikicode)
 
-    block = f"{{{{{SHELL_CANONICAL_NAME}|\n{new_rcat}\n}}}}"
+    bare_rcats = [t for t in wikicode.filter_templates(recursive=False) if _is_bare_rcat(t)]
+    for template in bare_rcats:
+        wikicode.remove(template)
+    shelled = "\n".join([str(t) for t in bare_rcats] + [new_rcat])
+    block = f"{{{{{SHELL_CANONICAL_NAME}|\n{shelled}\n}}}}"
+
     insertion_index = _find_content_category_insertion_index(wikicode)
 
     if insertion_index is None:
         stripped = str(wikicode).rstrip()
-        return f"{stripped}\n\n{block}\n"
+        result = f"{stripped}\n\n{block}\n"
+    else:
+        nodes = wikicode.nodes
+        before = "".join(str(n) for n in nodes[:insertion_index]).rstrip()
+        after = "".join(str(n) for n in nodes[insertion_index:])
+        result = f"{before}\n\n{block}\n\n{after}"
 
-    nodes = wikicode.nodes
-    before = "".join(str(n) for n in nodes[:insertion_index]).rstrip()
-    after = "".join(str(n) for n in nodes[insertion_index:])
-    return f"{before}\n\n{block}\n\n{after}"
+    # Removing a bare rcat leaves its blank-line padding behind; collapse the
+    # resulting run of blank lines rather than tracking exact whitespace
+    # through node removal.
+    return re.sub(r"\n{3,}", "\n\n", result)

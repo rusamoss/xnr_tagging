@@ -175,7 +175,10 @@ def test_evaluate_candidate_happy_path_returns_an_edit_plan(pages):
     assert isinstance(result, EditPlan)
     assert result.template_name == "R to category namespace"
     assert "{{R to category namespace}}" in result.new_text
-    assert result.summary == "Tagging [[WP:XNR|cross-namespace redirect]] with {{R to category namespace}}"
+    assert result.summary == (
+        "Tagging [[WP:XNR|cross-namespace redirect]] with {{R to category namespace}} "
+        "([[Wikipedia:Bots/Requests for approval/Rusabot|BRFA]])"
+    )
 
 
 @pytest.mark.parametrize(
