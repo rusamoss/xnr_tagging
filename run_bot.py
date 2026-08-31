@@ -14,11 +14,11 @@ Examples:
     # Dry run: fetch candidates, verify them, print what would change.
     python3 run_bot.py --dry-run --diff
 
-    # BRFA trial: make up to 25 live edits, logging as it goes.
+    # Make up to 25 live edits.
     python3 run_bot.py --limit 25
 
-    # Full run.
-    python3 run_bot.py --limit 500
+    # Full run: no cap, process every candidate found.
+    python3 run_bot.py
 
     # Local testing against real enwiki data, no Toolforge access needed.
     python3 run_bot.py --candidates-file sample_candidates_enwiki.csv --dry-run --diff
@@ -57,8 +57,7 @@ from xnrbot.bot import (
 
 logger = logging.getLogger("xnrbot")
 
-# --- Constants -- edit directly to change these; only DEFAULT_EDIT_LIMIT is
-# also overridable per-run, via --limit. -------------------------------------
+# --- Constants -- edit directly to change these. ----------------------------
 # Used only for the descriptive User-Agent sent with replica DB / API traffic
 # (WP:UA policy); pywikibot's own login identity comes from user-config.py,
 # not from here.
@@ -80,9 +79,6 @@ DB_NAME_DIRECT = f"{DB_NAME}_p"
 # Edit the constant directly if this ever needs to change; not exposed as a
 # flag.
 MIN_AGE_HOURS = 24.0
-
-# Cap on actual edits made per run.
-DEFAULT_EDIT_LIMIT = 50
 
 # Consecutive unexpected errors before the run aborts outright, rather than
 # grinding through the rest of the candidate list with (presumably) the same
@@ -125,9 +121,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--limit",
         type=int,
-        default=DEFAULT_EDIT_LIMIT,
-        help=f"Maximum number of edits (or would-be edits in --dry-run) to make "
-        f"this run. Default: {DEFAULT_EDIT_LIMIT}.",
+        default=None,
+        help="Maximum number of edits (or would-be edits in --dry-run) to make "
+        "this run. Unlimited by default; set this for a BRFA trial (e.g. 10-50).",
     )
     parser.add_argument(
         "--random",
@@ -232,7 +228,7 @@ def main(argv: list[str] | None = None) -> int:
     # rather than propagating, so it's handled via isinstance() here instead
     # of a try/except around the loop body.
     for candidate, result in evaluate_candidates(site, candidates, min_age):
-        if edits_made >= args.limit:
+        if args.limit is not None and edits_made >= args.limit:
             logger.info("Reached --limit of %d edit(s); stopping.", args.limit)
             break
 
