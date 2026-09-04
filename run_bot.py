@@ -272,6 +272,17 @@ def main(argv: list[str] | None = None) -> int:
             edits_made += 1
             consecutive_errors = 0
 
+        except pywikibot.exceptions.TitleblacklistError:
+            # Per-page, not namespace-wide (unlike the File:/MediaWiki: source
+            # exclusion in policy.py's scope_violation()) -- no way to predict
+            # this before attempting the save, so it's handled reactively here
+            # rather than in evaluate_candidates(). Not counted as an error:
+            # it's an expected "this specific page is off-limits" outcome, not
+            # a sign the bot itself is malfunctioning.
+            skip_counts["title-blacklisted (bot not authorized to save)"] += 1
+            logger.info("SKIP %s: title-blacklisted, bot not authorized to save", candidate.source_title)
+            consecutive_errors = 0
+
         except pywikibot.exceptions.Error:
             logger.exception("Error saving %s; skipping it.", candidate.source_title)
             if note_error():

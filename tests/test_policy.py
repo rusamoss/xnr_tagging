@@ -6,8 +6,10 @@ from xnrbot.policy import (
     AFC_DRAFT_CATEGORY,
     CATEGORY_NAMESPACE,
     DRAFT_NAMESPACE,
+    FILE_NAMESPACE,
     HELP_NAMESPACE,
     MAIN_NAMESPACE,
+    MEDIAWIKI_NAMESPACE,
     MOS_NAMESPACE,
     PORTAL_NAMESPACE,
     SHELL_ALIASES,
@@ -80,10 +82,15 @@ def test_shell_aliases():
 
 OUT_OF_SCOPE_PAIRS = [
     (MAIN_NAMESPACE, MAIN_NAMESPACE),  # same namespace
-    # All three EXCLUDED_SOURCE_NAMESPACES members, checked individually --
+    # All five EXCLUDED_SOURCE_NAMESPACES members, checked individually --
     # a WP:BOTPOLICY-relevant exclusion, not an arbitrary set to sample from.
+    # File/MediaWiki are excluded for a different reason than the other
+    # three (categorically un-savable by this bot account, not out of scope
+    # conceptually -- see scope_violation()'s comment).
     (USER_NAMESPACE, MAIN_NAMESPACE),
     (USER_TALK_NAMESPACE, MAIN_NAMESPACE),
+    (FILE_NAMESPACE, MAIN_NAMESPACE),
+    (MEDIAWIKI_NAMESPACE, MAIN_NAMESPACE),
     (DRAFT_NAMESPACE, MAIN_NAMESPACE),
     (1, 5),  # Talk -> Wikipedia talk (talk-to-talk)
     (MOS_NAMESPACE, WIKIPEDIA_NAMESPACE),  # legacy pseudo-namespace pattern

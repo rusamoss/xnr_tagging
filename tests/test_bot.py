@@ -362,7 +362,7 @@ def test_evaluate_candidates_handles_a_mixed_batch(pages):
 
     assert [c.source_title for c, _ in results] == ["Foo", "Bar", "Baz"]
     assert results[0][1] == SkippedCandidate(
-        SkipReason.OUT_OF_SCOPE, detail="source namespace is excluded (User, User talk, or Draft)"
+        SkipReason.OUT_OF_SCOPE, detail="source namespace is excluded (User, User talk, File, MediaWiki, or Draft)"
     )
     assert isinstance(results[1][1], EditPlan)
     assert results[2][1] == SkippedCandidate(SkipReason.ALREADY_TAGGED)

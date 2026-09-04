@@ -20,6 +20,8 @@ MAIN_NAMESPACE = 0
 USER_NAMESPACE = 2
 USER_TALK_NAMESPACE = 3
 WIKIPEDIA_NAMESPACE = 4
+FILE_NAMESPACE = 6
+MEDIAWIKI_NAMESPACE = 8
 TEMPLATE_NAMESPACE = 10
 HELP_NAMESPACE = 12
 CATEGORY_NAMESPACE = 14
@@ -135,9 +137,21 @@ def scope_violation(source_namespace: int, target_namespace: int) -> str | None:
         return "source and target are in the same namespace"
 
     # Source namespaces the query excludes entirely, regardless of target.
-    EXCLUDED_SOURCE_NAMESPACES = frozenset({USER_NAMESPACE, USER_TALK_NAMESPACE, DRAFT_NAMESPACE})
+    # File and MediaWiki are excluded because Rusabot categorically can't
+    # save to them, not because the redirects themselves are out of scope --
+    # confirmed live 2026-09-04: MediaWiki API rejects every save attempt
+    # with "noimageredirect" (any edit to File: content that's still a
+    # redirect needs a right this bot doesn't have, re-checked on every
+    # save, not just creation) or "protectednamespace-interface" (MediaWiki:
+    # needs editinterface, admin-only). TODO: revisit excluding File: if/when
+    # Rusabot's permissions are regenerated with the right to create/edit
+    # image redirects -- the backlog of File:-sourced XNRs is real, just
+    # untaggable by this bot account today.
+    EXCLUDED_SOURCE_NAMESPACES = frozenset(
+        {USER_NAMESPACE, USER_TALK_NAMESPACE, FILE_NAMESPACE, MEDIAWIKI_NAMESPACE, DRAFT_NAMESPACE}
+    )
     if source_namespace in EXCLUDED_SOURCE_NAMESPACES:
-        return "source namespace is excluded (User, User talk, or Draft)"
+        return "source namespace is excluded (User, User talk, File, MediaWiki, or Draft)"
 
     if is_talk_namespace(source_namespace) and is_talk_namespace(target_namespace):
         return "talk-to-talk redirects are out of scope"

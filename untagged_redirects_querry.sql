@@ -1,4 +1,4 @@
--- Cross-namespace redirects (excluding Draft: -> Any namespace, User:, and User talk: -> Any namespace, and any talk namespace -> any other talk namespace) NOT tagged with any XNR redirect category (e.g. Redirects to category space, Redirects to the main namespace), which have corresponding XNRs (so not e.g. redirects to the Module namespace, since {{R to module namespace}} doesn't exist).
+-- Cross-namespace redirects (excluding Draft: -> Any namespace, User:, User talk:, File:, and MediaWiki: -> Any namespace, and any talk namespace -> any other talk namespace) NOT tagged with any XNR redirect category (e.g. Redirects to category space, Redirects to the main namespace), which have corresponding XNRs (so not e.g. redirects to the Module namespace, since {{R to module namespace}} doesn't exist).
 -- Also excludes R2 eligible redirects (from mainspace to any namespace except Category:, Template:, Wikipedia:, Help:, and Portal:)
 
 -- See https://quarry.wmcloud.org/query/107791 for XNRs that don't have corresponding rcat templates (e.g. to Module:).
@@ -34,7 +34,11 @@ LEFT JOIN categorylinks cl
        AND cl.cl_from      = src.page_id
 WHERE src.page_namespace != r.rd_namespace
   AND (r.rd_interwiki = '' OR r.rd_interwiki IS NULL) -- not interwiki link
-  AND src.page_namespace NOT IN (2, 3, 118) -- not from User, User talk, Draft
+  AND src.page_namespace NOT IN (2, 3, 6, 8, 118) -- not from User, User talk, File, MediaWiki, Draft
+  -- File (6) and MediaWiki (8) added 2026-09-04: Rusabot can never save to these regardless of
+  -- target -- confirmed live via "noimageredirect" (File: redirects) and "protectednamespace-interface"
+  -- (MediaWiki: needs editinterface) API errors. TODO: revisit File: if Rusabot's permissions ever
+  -- gain image-redirect rights; the backlog there is real, just untaggable by this account today.
   AND NOT (src.page_namespace % 2 = 1 AND r.rd_namespace % 2 = 1) -- avoid talk -> talk
   AND NOT (src.page_namespace = 126 AND r.rd_namespace = 4) -- avoid MOS -> Wikipedia
   AND NOT (src.page_namespace = 0 AND r.rd_namespace NOT IN (4, 10, 12, 14, 100)) -- avoid R2-eligible mainspace XNRs (mainspace -> anything except Wikipedia, Template, Help, Category, Portal)
