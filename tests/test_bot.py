@@ -89,6 +89,8 @@ class FakePage:
         last_edit=NOW - datetime.timedelta(days=10),
         category_names=(),
         bot_may_edit=True,
+        has_permission=True,
+        protection_level="sysop",
         text="#REDIRECT [[Target]]\n",
         redirect_error=None,
     ):
@@ -100,6 +102,8 @@ class FakePage:
         self.latest_revision = FakeRevision(last_edit)
         self._categories = [FakeCategory(name) for name in category_names]
         self._bot_may_edit = bot_may_edit
+        self._has_permission = has_permission
+        self._protection_level = protection_level
         self.text = text
 
     def title(self, with_section=True):
@@ -121,6 +125,12 @@ class FakePage:
 
     def botMayEdit(self):
         return self._bot_may_edit
+
+    def has_permission(self, action="edit"):  # noqa: U100 -- action unused, matches real signature
+        return self._has_permission
+
+    def protection(self):
+        return {"edit": (self._protection_level, "infinity")} if not self._has_permission else {}
 
 
 @pytest.fixture
@@ -236,6 +246,15 @@ def test_evaluate_candidate_rejects_bad_namespace_pairs_without_touching_any_pag
             None,
         ),
         (dict(redirect_target_title="Category:Foo", bot_may_edit=False), SkipReason.BOT_EXCLUDED, None),
+        (
+            # Real trigger: pywikibot.exceptions.LockedPageError from
+            # page.save() on a fully-protected page (e.g. Main Page/sandbox)
+            # -- caught proactively here instead of surfacing as a save-time
+            # crash.
+            dict(redirect_target_title="Category:Foo", has_permission=False, protection_level="sysop"),
+            SkipReason.PROTECTED,
+            "sysop",
+        ),
         (
             # Defensive case: category membership hasn't caught it (e.g.
             # cache lag), but the raw wikitext already has the template.

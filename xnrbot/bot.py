@@ -87,6 +87,7 @@ class SkipReason(enum.Enum):
     INVALID_NAMESPACE = "namespace ID not recognized by the live site"
     NOT_FOUND = "page no longer exists"
     PENDING_DELETION = "page is nominated for deletion (RfD or CSD)"
+    PROTECTED = "page is protected against edits this bot account can't make"
     NOT_REDIRECT = "page is no longer a redirect"
     TARGET_CHANGED = "redirect target has changed since the query ran"
     RECENTLY_EDITED = "edited too recently"
@@ -215,6 +216,10 @@ def _evaluate_prepared_candidate(
     # here would silently re-tag pages the query already considers tagged.
     if live_categories & XNR_TAGGED_CATEGORIES:
         return SkippedCandidate(SkipReason.ALREADY_TAGGED)
+
+    if not page.has_permission():
+        level = page.protection().get("edit")
+        return SkippedCandidate(SkipReason.PROTECTED, detail=level[0] if level else "")
 
     if not page.botMayEdit():
         return SkippedCandidate(SkipReason.BOT_EXCLUDED)
